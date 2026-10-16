@@ -54,6 +54,8 @@ The roles are separate in responsibility, not three independent LLM processes. D
 
 Missing observations stay missing. Neither valid JSON nor a real evidence ID establishes that the model interpreted an event correctly. The independent evidence criteria are specific to these scenarios, not a general-purpose semantic truth detector.
 
+The **Input & decision** view compares the retained model input with its actual output and the current control decision. It does not present old model context as live telemetry. After approval, the optional DB-pressure challenge appends a new scenario observation and preserves the original context, plan, and approval. A preview is labeled as not yet executed; an actual execution attempt independently rechecks policy, records a denial, and persists the stopped state without applying a recovery mutation. No additional model call is made by that challenge.
+
 ## Proposed AWS reference architecture
 
 **This mapping is a design for discussion, not deployed infrastructure or measured production behavior. There are no AWS deployment templates in this repository.**

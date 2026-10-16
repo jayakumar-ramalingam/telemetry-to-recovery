@@ -177,6 +177,73 @@ class RecoveryTests(unittest.TestCase):
         self.assertNotEqual(self.demo.run_id, old)
         self.assertEqual(len(self.demo.journal.events(old)), count)
 
+    def test_condition_change_preserves_approved_plan_and_original_observation(self):
+        self.planned()
+        approved = self.demo.approve()
+        plan = copy.deepcopy(approved["plan"])
+        approval = copy.deepcopy(approved["approval"])
+        previous = copy.deepcopy(approved["metrics"][-1])
+        s = self.demo.challenge_db_pressure()
+        self.assertEqual(s["stage"], "approved")
+        self.assertEqual(s["plan"], plan)
+        self.assertEqual(s["approval"], approval)
+        self.assertEqual(s["metrics"][-2], previous)
+        self.assertEqual(s["metrics"][-1]["db_pct"], 90)
+        self.assertEqual(s["scenario_s"], approved["scenario_s"] + 5)
+        failed = [c["name"] for c in s["execution_policy"]["checks"] if not c["passed"]]
+        self.assertEqual(failed, ["Downstream DB remains below the 80% stop threshold"])
+        self.assertEqual(s["execution_policy_phase"], "preview")
+        self.assertIsNone(s["execution"])
+        self.assertTrue(s["integrity"]["valid"])
+
+    def test_changed_conditions_block_execution_and_persist_denial(self):
+        self.planned()
+        self.demo.approve()
+        self.demo.challenge_db_pressure()
+        with self.assertRaises(DemoError):
+            self.demo.execute()
+        s = self.demo.state()
+        self.assertEqual(s["stage"], "stopped")
+        self.assertTrue(s["execution_blocked"])
+        self.assertEqual(s["execution_policy_phase"], "execution")
+        self.assertEqual(s["revision"], "worker:v2")
+        self.assertIsNone(s["execution"])
+        self.assertFalse(any(e["kind"] in {"action.started", "change.applied", "action.completed"} for e in s["journal"]))
+        self.assertEqual(sum(e["kind"] == "scenario.condition_changed" for e in s["journal"]), 1)
+        self.assertEqual(sum(e["kind"] == "action.denied" for e in s["journal"]), 1)
+        restored = RecoveryDemo(self.path)
+        try:
+            self.assertTrue(restored.state()["execution_blocked"])
+            self.assertFalse(restored.state()["execution_policy"]["allowed"])
+        finally:
+            restored.journal.db.close()
+
+    def test_condition_change_requires_approval_and_is_single_use(self):
+        for stage in range(5):
+            count = len(self.demo.state()["journal"])
+            with self.assertRaises(DemoError):
+                self.demo.challenge_db_pressure()
+            self.assertEqual(len(self.demo.state()["journal"]), count)
+            if stage < 4:
+                self.demo.next()
+        self.demo.approve()
+        self.demo.challenge_db_pressure()
+        count = len(self.demo.state()["journal"])
+        with self.assertRaises(DemoError):
+            self.demo.challenge_db_pressure()
+        self.assertEqual(len(self.demo.state()["journal"]), count)
+
+    def test_new_run_clears_condition_change_without_erasing_old_run(self):
+        self.planned()
+        self.demo.approve()
+        self.demo.challenge_db_pressure()
+        old_run = self.demo.run_id
+        s = self.demo.new_run("memory")
+        self.assertIsNone(s["condition_change"])
+        self.assertIsNone(s["execution_policy"])
+        self.assertFalse(s["execution_blocked"])
+        self.assertTrue(any(e["kind"] == "scenario.condition_changed" for e in self.demo.journal.events(old_run)))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

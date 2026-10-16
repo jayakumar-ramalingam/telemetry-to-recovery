@@ -66,6 +66,23 @@ class BedrockContractTests(unittest.TestCase):
         self.demo.execute()
         self.assertTrue(self.demo.verify_recovery()["verification"]["passed"])
 
+    def test_late_db_change_keeps_model_context_and_approval_but_blocks_execution(self):
+        diagnosed = self.diagnose()
+        packet = copy.deepcopy(diagnosed["ai_packet"])
+        report = copy.deepcopy(diagnosed["ai_report"])
+        self.demo.next()
+        approved = self.demo.approve()
+        changed = self.demo.challenge_db_pressure()
+        self.assertEqual(changed["ai_packet"], packet)
+        self.assertEqual(changed["ai_report"], report)
+        self.assertEqual(changed["plan"], approved["plan"])
+        self.assertEqual(changed["approval"], approved["approval"])
+        self.assertEqual(len(self.fake.calls), 1)
+        with self.assertRaises(DemoError):
+            self.demo.execute()
+        self.assertTrue(self.demo.state()["execution_blocked"])
+        self.assertFalse(any(e["kind"] == "change.applied" for e in self.demo.state()["journal"]))
+
     def test_prompt_has_separate_roles_and_no_tools_or_injector_labels(self):
         self.diagnose()
         request = self.fake.calls[0]

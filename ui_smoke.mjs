@@ -24,6 +24,10 @@ for(const [label,name] of [['Inject release + fault','02-incident'],['Collect in
   await page.waitForFunction(()=>!document.body.classList.contains('busy'));
   await snap(name);
 }
+await page.getByRole('tab',{name:'Input & decision',exact:true}).click();
+await page.getByText('1. Input',{exact:true}).waitFor();
+await page.getByText('Explicit rules baseline: no model call or generated response.',{exact:true}).waitFor();
+await snap('05b-input-decision');
 await page.getByRole('button',{name:'Why not scale out?',exact:true}).click();
 await page.getByText('Rejected alternative: scale 3 to 9 workers',{exact:true}).waitFor();
 await snap('06-denied-alternative');
@@ -63,8 +67,27 @@ await page.setViewportSize({width:390,height:844});
 await snap('12-mobile');
 const mobile=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
 if(mobile)throw Error('Mobile horizontal overflow');
-if(errors.length)throw Error(errors.join('\n'));
+await page.setViewportSize({width:1920,height:1080});
 await page.selectOption('#scenario','memory');
+await page.getByRole('button',{name:'New run',exact:true}).click();
+await page.getByRole('button',{name:'Inject release + fault',exact:true}).waitFor();
+for(const label of ['Inject release + fault','Collect incident evidence','Run diagnostic agents','Build + evaluate plan','Approve this recovery']){
+  await page.getByRole('button',{name:label,exact:true}).click();
+  await page.waitForFunction(()=>!document.body.classList.contains('busy'));
+}
+const approved=await (await page.request.get(`${base}/api/state`)).json();
+await page.getByRole('button',{name:'Raise DB pressure to 90%',exact:true}).click();
+await page.getByText('PRECHECK BLOCKED · NOT EXECUTED',{exact:true}).waitFor();
+await snap('13-changed-conditions');
+await page.getByRole('button',{name:'Execute approved rollback',exact:true}).click();
+await page.getByText('EXECUTION BLOCKED',{exact:true}).waitFor();
+await page.getByText('STOP: execution preconditions failed.',{exact:true}).waitFor();
+const blocked=await (await page.request.get(`${base}/api/state`)).json();
+if(blocked.stage!=='stopped'||!blocked.execution_blocked||blocked.execution)throw Error('Changed conditions were not blocked');
+if(JSON.stringify(blocked.plan)!==JSON.stringify(approved.plan)||JSON.stringify(blocked.approval)!==JSON.stringify(approved.approval))throw Error('Challenge rewrote the approved plan');
+if(blocked.journal.some(e=>e.kind==='change.applied'))throw Error('Blocked execution mutated the workload');
+await snap('14-execution-blocked');
+if(errors.length)throw Error(errors.join('\n'));
 await page.getByRole('button',{name:'New run',exact:true}).click();
 await page.getByRole('button',{name:'Inject release + fault',exact:true}).waitFor();
 await browser.close();

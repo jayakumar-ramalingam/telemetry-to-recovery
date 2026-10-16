@@ -79,7 +79,8 @@ def main():
                         raise DemoError("This browser has an old run. Refresh before acting.")
                     actions = {"/api/next": demo.next, "/api/approve": demo.approve,
                                "/api/execute": demo.execute, "/api/verify": demo.verify_recovery,
-                               "/api/unsafe-scale": demo.unsafe_scale, "/api/replay": demo.replay}
+                               "/api/unsafe-scale": demo.unsafe_scale, "/api/replay": demo.replay,
+                               "/api/challenge-db": demo.challenge_db_pressure}
                     if self.path == "/api/new":
                         result = demo.new_run(body.get("scenario", "memory"))
                     elif self.path in actions:
@@ -87,7 +88,10 @@ def main():
                     else:
                         return self.respond({"error": "Not found"}, status=404)
                     return self.respond(result)
-            except (DemoError, ValueError, TypeError) as exc:
+            except DemoError as exc:
+                with demo.lock:
+                    return self.respond({"error": str(exc), "state": demo.state()}, status=409)
+            except (ValueError, TypeError) as exc:
                 return self.respond({"error": str(exc)}, status=409)
 
         def log_message(self, fmt, *args):

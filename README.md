@@ -62,6 +62,16 @@ The workflow addresses four questions:
 
 The local model may recommend an unsupported action or correctly refuse. Do not promise a particular response. The boundary being demonstrated is that required evidence checks still control execution.
 
+### Inspect input, output, and the control decision
+
+The **Input & decision** tab places the selected evidence packet, actual model output, and independent decision together. Expand the packet or response to inspect the recorded content. Model output is labeled separately from permission, and the mutation count is derived from this run's recorded changes. Rules mode is explicitly labeled as having no model response.
+
+### Challenge an already approved plan
+
+On a fresh supported run, build and approve a plan, then click **Raise DB pressure to 90%** before execution. This appends a new synthetic observation five scenario seconds later. It does not rewrite earlier observations, call the model again, edit the plan, or change its approval.
+
+The preview shows a failed current-condition check. Click **Execute approved rollback** to exercise the executor's actual recheck: it records the refusal, stops the workflow, and performs zero recovery mutations. The browser displays the recorded state even though the HTTP action returns a conflict response. Start a new run to repeat the exercise; there is no bypass button.
+
 ## Tests
 
 Offline tests with model test doubles:

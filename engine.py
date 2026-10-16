@@ -222,6 +222,8 @@ class RecoveryDemo:
                          "provider": "rules", "model_id": "None", "configured": False,
                          "role": "Deterministic baseline; not an LLM"},
                      "approval": None, "execution": None, "verification": None,
+                     "condition_change": None, "execution_policy": None,
+                     "execution_policy_phase": None, "execution_blocked": False,
                      "active_action": None, "replay": None, "denial": None,
                      "headline": "Healthy baseline. The next release changes the worker.",
                      "explanation": "120 jobs/s enter the queue. Three workers have 140 jobs/s of processing capacity. Oldest work is 4 seconds old."}
@@ -322,9 +324,41 @@ class RecoveryDemo:
             s["approval"] = {"operator": operator, "at_s": s["scenario_s"],
                              "plan_hash": hashlib.sha256(canonical(s["plan"]).encode()).hexdigest()}
             s["denial"] = None
+            s["execution_policy"] = None
+            s["execution_policy_phase"] = None
+            s["execution_blocked"] = False
             self.emit("approval.granted", s["scenario_s"], s["approval"])
             s.update(stage="approved", headline="Approval is bound to this exact plan.",
                      explanation="The executor will recheck revision, evidence, ownership, and approval before applying the action. An edited plan needs new approval.")
+            self.save(s)
+            return self.state()
+
+    def challenge_db_pressure(self):
+        """Append a scenario observation after approval; never rewrite its evidence."""
+        with self.lock:
+            s = self.load()
+            if s["stage"] != "approved" or not s.get("approval") or not s.get("plan"):
+                raise DemoError("Approve a plan before changing the downstream conditions")
+            if s.get("condition_change"):
+                raise DemoError("This run already contains a condition change; start a new run to repeat it")
+            last = s["metrics"][-1]
+            before = last["db_pct"]
+            self.sample(s, s["scenario_s"] + 5, last["memory_mb"], last["queue_age_s"],
+                        last["p95_ms"], last["restarts"], db=90,
+                        throughput=last["throughput"], observed=last["memory_observed"])
+            s["condition_change"] = {
+                "kind": "db_pressure", "before_db_pct": before, "after_db_pct": 90,
+                "observation_ref": s["metrics"][-1]["event_seq"],
+                "approved_plan_hash": s["approval"]["plan_hash"],
+                "source": "explicit synthetic scenario control",
+            }
+            self.emit("scenario.condition_changed", s["scenario_s"], s["condition_change"])
+            s["execution_policy"] = Policy.evaluate(s["plan"], s, approved=True)
+            s["execution_policy_phase"] = "preview"
+            self.emit("execution.preview", s["scenario_s"],
+                      {"action_id": s["plan"]["action_id"], **s["execution_policy"]})
+            s.update(headline="Conditions changed after approval.",
+                     explanation="A new scenario observation raises DB utilization to 90%. The model input, approved plan, and approval are unchanged. Attempt execution to see the executor recheck the current conditions.")
             self.save(s)
             return self.state()
 
@@ -341,8 +375,17 @@ class RecoveryDemo:
                 self.save(s)
                 return self.state()
             policy = Policy.evaluate(s["plan"], s, approved=True)
+            s["execution_policy"] = policy
+            s["execution_policy_phase"] = "execution"
+            self.emit("execution.preconditions_checked", s["scenario_s"],
+                      {"action_id": action_id, **policy})
             if s["stage"] != "approved" or not policy["allowed"]:
                 self.emit("action.denied", s["scenario_s"], policy)
+                if s["stage"] == "approved":
+                    s.update(stage="stopped", execution_blocked=True,
+                             headline="STOP: execution preconditions failed.",
+                             explanation="The executor rejected the approved plan against current conditions. No recovery mutation occurred. Start a new investigation rather than bypassing the failed checks.")
+                self.save(s)
                 raise DemoError("Executor refused the action: approval or preconditions failed")
             s["active_action"] = action_id
             self.emit("action.started", s["scenario_s"], {"action_id": action_id, "target": "demo/workers"})

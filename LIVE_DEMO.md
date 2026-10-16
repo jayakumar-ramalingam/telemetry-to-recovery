@@ -42,6 +42,8 @@ After the response arrives, show **AI investigator**: provider, model, proposed 
 
 The local lab has one LLM investigator. Other roles are code, not independently running LLM specialists.
 
+Open **Input & decision** for a side-by-side view of the evidence packet, actual response, and independent decision. Expand **Inspect evidence packet** or **Inspect actual model output** when useful. These are recorded values, not a prepared explanation substituted for the model.
+
 ### 4. Inspect the action boundary
 
 Click **Build + evaluate plan** and show **Action contract**. Point to the target, expected revision, action ID, evidence, and approval requirement. Briefly show `Policy.evaluate` in the editor.
@@ -93,3 +95,15 @@ These GET requests inspect the current run without mutation. If `jq` is unavaila
 - **Browser or laptop trouble:** use prepared screenshots or a recording and state that it is a backup.
 
 Close the demo with the four questions: did the evidence justify the attempt, was it permitted, what happened, and did useful work recover?
+
+## Optional: conditions change after approval
+
+Use a new Memory regression run so the normal recovery demonstration remains separate. Investigate, build a supported plan, and approve it. Before executing, click **Raise DB pressure to 90%**.
+
+The new observation is appended; the original model input, plan, and exact-plan approval remain unchanged. **Input & decision** compares DB pressure in the model's input with the current state. The initial label is **PRECHECK BLOCKED · NOT EXECUTED**, because the executor has not yet been called.
+
+Click **Execute approved rollback**. The actual executor recheck fails the downstream DB condition, records `execution.preconditions_checked` and `action.denied`, and stops with **EXECUTION BLOCKED** and zero recovery mutations. The model is not called again by this control.
+
+> Approval was valid when we gave it. Conditions changed afterward. The executor checks again instead of blindly following an earlier decision.
+
+The 90% reading is an explicit scenario input, not measured database utilization. It is a demonstration of the policy boundary, not a new live infrastructure deployment. Start a new run afterward; do not bypass the refusal.
