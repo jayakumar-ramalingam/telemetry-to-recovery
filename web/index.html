@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="demo-token" content="__DEMO_TOKEN__">
+  <title>From Telemetry to Recovery · Incident Lab</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div><div class="eyebrow">DAY OF DATA ORLANDO · INCIDENT LAB</div><h1>From telemetry to recovery</h1></div>
+      <div class="disclosure"><strong>SYNTHETIC WORKLOAD</strong><span id="provider-label">Checking investigator configuration</span><span>No live Kubernetes · Simulated actuator</span></div>
+    </header>
+    <section class="topology" aria-label="Synthetic application topology">
+      <div>API<span>120 jobs/s</span></div><b>→</b><div>Queue<span id="queue-node">4 s oldest work</span></div><b>→</b><div id="worker-node">Workers<span id="revision-node">v1 · 3 replicas</span></div><b>→</b><div>Database<span id="db-node">40% utilization</span></div>
+      <aside><span>SCENARIO CLOCK</span><strong id="clock">00:50</strong></aside>
+    </section>
+    <nav class="stages" aria-label="Incident lifecycle" id="stages"></nav>
+    <section class="story" aria-live="polite"><div class="phase" id="phase">BASELINE</div><h2 id="headline"></h2><p id="explanation"></p></section>
+    <section class="metrics" aria-label="Workload signals">
+      <article><div class="metric-label">Oldest queued work <span>contract &lt; 30 s</span></div><div class="metric-value" id="queue-value"></div><div id="queue-chart"></div></article>
+      <article><div class="metric-label">Worker memory <span>512 MB limit</span></div><div class="metric-value" id="memory-value"></div><div id="memory-chart"></div></article>
+      <article><div class="metric-label">End-to-end p95 <span>contract &lt; 300 ms</span></div><div class="metric-value" id="latency-value"></div><div id="latency-chart"></div></article>
+    </section>
+    <div class="detail-head"><div class="tabs" role="tablist" aria-label="Evidence views"><button role="tab" aria-selected="true" data-tab="investigation">Investigation</button><button role="tab" aria-selected="false" data-tab="ai">AI investigator</button><button role="tab" aria-selected="false" data-tab="action">Action contract</button><button role="tab" aria-selected="false" data-tab="journal">Event journal</button></div><div class="run-label" id="run-label"></div></div>
+    <section class="detail" id="detail" role="tabpanel" aria-label="Selected evidence view"></section>
+    <section class="controls" aria-label="Presenter controls">
+      <div class="scenario-controls"><label for="scenario">Scenario</label><select id="scenario"><option value="memory">Memory regression</option><option value="gap">Incomplete evidence</option></select><button id="new-run">New run</button></div>
+      <div class="actions"><button id="auxiliary" hidden></button><button id="next" class="primary">Inject release + fault</button></div>
+    </section>
+    <p id="error" role="alert" hidden></p>
+    <footer><span>Teaching implementation, separate from the research evaluation. All workload readings use simulated time.</span><a href="/api/export" target="_blank" rel="noopener">Export incident evidence ↗</a></footer>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>

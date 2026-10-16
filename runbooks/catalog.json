@@ -1,0 +1,20 @@
+[
+  {
+    "id": "rb-workers-memory@1.0",
+    "owner": "Demo platform team",
+    "revision": "1.0",
+    "service": "demo/workers",
+    "approved_action": "rollback",
+    "keywords": ["worker", "memory", "restart", "regression", "queue"],
+    "file": "worker-memory-regression.md"
+  },
+  {
+    "id": "rb-downstream-pressure@1.0",
+    "owner": "Demo data services team",
+    "revision": "1.0",
+    "service": "demo/workers",
+    "approved_action": "escalate",
+    "keywords": ["worker", "database", "pressure", "latency", "queue"],
+    "file": "downstream-pressure.md"
+  }
+]
