@@ -1,6 +1,6 @@
 # From Telemetry to Recovery
 
-A local incident lab for Jayakumar Ramalingam's Days of Data Orlando talk, **Building Self-Healing Cloud Systems with Multi-Agent AI**.
+A local lab for evidence-backed incident investigation and controlled recovery.
 
 Follow a worker-queue incident from recorded telemetry through investigation, exact-plan approval, controlled execution, and workload verification. Inspect the evidence and control code rather than relying only on the dashboard.
 
@@ -27,13 +27,12 @@ The interface labels this mode **Rules baseline · no LLM**. It is never a hidde
 
 The investigator is read-only and receives no execution tools. Model failure, invalid output, or insufficient evidence stops the workflow; it does not silently switch providers and execute.
 
-## Presentation and technical guides
+## Technical guides
 
-- [Live demo: components, preparation, clicks, and narration](LIVE_DEMO.md)
-- [Final 16-slide talk outline: 50 minutes plus 10 minutes Q&A](TALK_OUTLINE.md)
+- [Component walkthrough and demonstration sequence](LIVE_DEMO.md)
 - [Implementation and proposed AWS architecture](ARCHITECTURE.md)
 
-The four questions running through the talk are:
+The workflow addresses four questions:
 
 1. Does the evidence support attempting it?
 2. Is the action permitted right now?

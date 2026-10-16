@@ -9,8 +9,7 @@
 <body>
   <main>
     <header>
-      <div><div class="eyebrow">DAY OF DATA ORLANDO · INCIDENT LAB</div><h1>From telemetry to recovery</h1></div>
-      <div class="disclosure"><strong>SYNTHETIC WORKLOAD</strong><span id="provider-label">Checking investigator configuration</span><span>No live Kubernetes · Simulated actuator</span></div>
+      <div><div class="eyebrow">INCIDENT RECOVERY</div><h1>From telemetry to recovery</h1></div>
     </header>
     <section class="topology" aria-label="Synthetic application topology">
       <div>API<span>120 jobs/s</span></div><b>→</b><div>Queue<span id="queue-node">4 s oldest work</span></div><b>→</b><div id="worker-node">Workers<span id="revision-node">v1 · 3 replicas</span></div><b>→</b><div>Database<span id="db-node">40% utilization</span></div>
@@ -30,7 +29,7 @@
       <div class="actions"><button id="auxiliary" hidden></button><button id="next" class="primary">Inject release + fault</button></div>
     </section>
     <p id="error" role="alert" hidden></p>
-    <footer><span>Teaching implementation, separate from the research evaluation. All workload readings use simulated time.</span><a href="/api/export" target="_blank" rel="noopener">Export incident evidence ↗</a></footer>
+    <footer><span>Local incident lab · Scenario-time measurements</span><a href="/api/export" target="_blank" rel="noopener">Export incident evidence ↗</a></footer>
   </main>
   <script src="/app.js"></script>
 </body>

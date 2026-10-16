@@ -1,6 +1,6 @@
-# Live demo: what to show and say
+# Component walkthrough
 
-Allow approximately 11 minutes in the middle of the talk. The original local recording is a backup strategy, not a Git-tracked artifact. Prepare your own tested recording or screenshots on the presentation machine.
+Follow the application from incident evidence through investigation, authorization, execution, and verification. The sequence uses the browser, selected journal records, and short code excerpts. Recordings and screenshots can be generated locally; they are not Git-tracked artifacts.
 
 ## State the boundary once
 
@@ -8,15 +8,15 @@ Allow approximately 11 minutes in the middle of the talk. The original local rec
 
 Use three prepared views: browser for progression, terminal for selected exported events, and editor for two short code excerpts. Do not expose a personal desktop, unrelated tabs, credentials, or raw dumps too small to read.
 
-## Before the session
+## Before starting
 
-1. Follow [LOCAL_SETUP.md](LOCAL_SETUP.md), download the model, and run both scenario checks on this laptop.
+1. Follow [LOCAL_SETUP.md](LOCAL_SETUP.md), download the model, and run both scenario checks on your machine.
 2. Start Ollama and the web server in advance. Rehearse a complete inference to warm the model.
 3. Open `http://127.0.0.1:8768` and select **Memory regression**, then **New run**.
 4. Prepare `evidence_packet` in `ai_investigator.py` and `Policy.evaluate` in `engine.py` in the editor.
 5. Keep backup screenshots/recording available. If inference fails, explain the stopped workflow. Do not bypass the checks or silently switch to a rules baseline.
 
-## Part A: investigation and controlled recovery, about seven minutes
+## Part A: investigation and controlled recovery
 
 ### 1. Establish healthy behavior
 
@@ -64,7 +64,7 @@ Click **Retry the same action**, then **Replay recorded history**. Show that onl
 
 > A repeated request returns the existing receipt. Replay reconstructs recorded state without replaying the external effect. This local mechanism is not a complete distributed exactly-once implementation.
 
-## Part B: insufficient evidence, about four minutes
+## Part B: insufficient evidence
 
 Select **Incomplete evidence**, click **New run**, then repeat **Inject release + fault**, **Collect incident evidence**, and **Run diagnostic agents**.
 

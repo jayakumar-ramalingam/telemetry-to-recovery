@@ -12,6 +12,8 @@ const errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 await page.goto(base);
 await page.locator('#headline').filter({hasText:/./}).waitFor();
+if(await page.locator('header .disclosure, #provider-label').count())throw Error('Removed header disclosure returned');
+if((await page.locator('header').innerText()).includes('DAY OF DATA'))throw Error('Conference-specific header returned');
 await page.selectOption('#scenario','memory');
 await page.getByRole('button',{name:'New run',exact:true}).click();
 await page.locator('#phase').filter({hasText:'BASELINE'}).waitFor();

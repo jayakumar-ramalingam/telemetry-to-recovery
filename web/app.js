@@ -79,7 +79,6 @@ function renderControls(){
 function render(){
   const m=state.metrics.at(-1);
   $("headline").textContent=state.headline;$("explanation").textContent=state.explanation;$("phase").textContent=state.stage.toUpperCase();
-  $("provider-label").textContent=state.ai_required?`${providerName()} · ${state.ai_report?.validated?"response received + validated":state.ai_report?"unavailable / rejected · stopped":"awaiting response"}`:"Rules baseline · no LLM";
   $("clock").textContent=clock(state.scenario_s);$("queue-node").textContent=`${m.queue_age_s} s oldest work`;
   $("revision-node").textContent=`${state.revision.replace("worker:","")} · ${state.replicas} replicas`;
   $("db-node").textContent=`${m.db_pct}% utilization`;
